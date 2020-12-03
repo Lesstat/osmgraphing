@@ -5,6 +5,10 @@ mod defaults {
 }
 
 fn main() {
+    // reruns
+    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-env-changed=GRAPH_DIM");
+
     let out_dir = {
         let out_dir = env::var_os("OUT_DIR").expect("Env-var OUT_DIR is not set.");
         PathBuf::from(&out_dir)
@@ -21,7 +25,6 @@ fn main() {
     };
 
     // https://stackoverflow.com/a/37528134
-    //
     // write compiler-constants into file
     fs::write(
         out_dir.join("compiler.rs"),
@@ -32,8 +35,4 @@ fn main() {
         ),
     )
     .expect("Writing compiler.rs didn't work.");
-
-    // reruns
-    println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-env-changed=GRAPH_DIM");
 }
