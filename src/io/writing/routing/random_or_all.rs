@@ -39,7 +39,8 @@ impl Writer {
 
         let output_file = OpenOptions::new()
             .write(true)
-            .create_new(true)
+            .create(true)
+            .truncate(true)
             .open(&writing_cfg.file)?;
         let mut writer = BufWriter::new(output_file);
 

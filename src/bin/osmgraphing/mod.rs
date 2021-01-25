@@ -96,7 +96,7 @@ fn run(args: CmdlineArgs) -> err::Feedback {
 
         // check if new file does already exist
 
-        if writing_cfg.map_file.exists() {
+        if writing_cfg.map_file.exists() && !args.overwrite {
             return Err(err::Msg::from(format!(
                 "New map-file {} does already exist. Please remove it.",
                 writing_cfg.map_file.display()
@@ -116,7 +116,7 @@ fn run(args: CmdlineArgs) -> err::Feedback {
 
         // check if new file does already exist
 
-        if writing_cfg.file.exists() {
+        if writing_cfg.file.exists() && !args.overwrite {
             return Err(err::Msg::from(format!(
                 "New file {} does already exist. Please remove it.",
                 writing_cfg.file.display()
@@ -136,7 +136,7 @@ fn run(args: CmdlineArgs) -> err::Feedback {
         debug!("");
     }
 
-    // writing routes to file
+    // writing routes to fileargs.overwrite
 
     if args.is_writing_route_pairs {
         // get config by provided user-input
@@ -146,7 +146,7 @@ fn run(args: CmdlineArgs) -> err::Feedback {
 
         // check if new file does already exist
 
-        if writing_cfg.file.exists() {
+        if writing_cfg.file.exists() && !args.overwrite {
             return Err(err::Msg::from(format!(
                 "New routes-file {} does already exist. Please remove it.",
                 writing_cfg.file.display()
@@ -456,6 +456,16 @@ fn parse_cmdline<'a>() -> err::Result<CmdlineArgs> {
         args.arg(arg_is_evaluating_balance)
     };
 
+    let args = {
+        let arg_overwrite = clap::Arg::with_name(constants::ids::OVERWRITE)
+            .short("o")
+            .long("overwrite")
+            .help("Overwrites output files if already present.")
+            .takes_value(false)
+            .requires(constants::ids::CFG);
+        args.arg(arg_overwrite)
+    };
+
     CmdlineArgs::try_from(args.get_matches())
 }
 
@@ -470,6 +480,7 @@ mod constants {
         pub const IS_EXPLORATING: &str = "is_explorating";
         pub const IS_BALANCING: &str = "is_balancing";
         pub const IS_EVALUATING_BALANCE: &str = "is_evaluating_balance";
+        pub const OVERWRITE: &str = "overwrite";
     }
 }
 
@@ -483,6 +494,7 @@ struct CmdlineArgs {
     #[cfg(feature = "gpl")]
     is_balancing: bool,
     is_evaluating_balance: bool,
+    overwrite: bool,
 }
 
 impl<'a> TryFrom<clap::ArgMatches<'a>> for CmdlineArgs {
@@ -502,6 +514,7 @@ impl<'a> TryFrom<clap::ArgMatches<'a>> for CmdlineArgs {
         let is_explorating = matches.is_present(constants::ids::IS_EXPLORATING);
         let is_balancing = matches.is_present(constants::ids::IS_BALANCING);
         let is_evaluating_balance = matches.is_present(constants::ids::IS_EVALUATING_BALANCE);
+        let overwrite = matches.is_present(constants::ids::OVERWRITE);
 
         if is_explorating || is_balancing || is_evaluating_balance {
             check_for_activated_feature()?;
@@ -517,6 +530,7 @@ impl<'a> TryFrom<clap::ArgMatches<'a>> for CmdlineArgs {
             #[cfg(feature = "gpl")]
             is_balancing,
             is_evaluating_balance,
+            overwrite,
         })
     }
 }

@@ -15,15 +15,15 @@ use std::{
 pub struct Writer;
 
 impl Writer {
-    pub fn check(writing_cfg: &WritingConfig) -> err::Feedback {
-        if writing_cfg.file.exists() {
-            Err(err::Msg::from(
-                "New map-file {} does already exist. Please remove it.",
-            ))
-        } else {
-            Ok(())
-        }
-    }
+    // pub fn check(writing_cfg: &WritingConfig) -> err::Feedback {
+    //     if writing_cfg.file.exists() {
+    //         Err(err::Msg::from(
+    //             "New map-file {} does already exist. Please remove it.",
+    //         ))
+    //     } else {
+    //         Ok(())
+    //     }
+    // }
 
     pub fn write(graph: &Graph, writing_cfg: &WritingConfig) -> err::Feedback {
         info!(
@@ -39,7 +39,8 @@ impl Writer {
 
         let output_file = match OpenOptions::new()
             .write(true)
-            .create_new(true)
+            .create(true)
+            .truncate(true)
             .open(&writing_cfg.file)
         {
             Ok(file) => file,
