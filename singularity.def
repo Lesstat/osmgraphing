@@ -2,14 +2,22 @@ Bootstrap: docker
 From: rust:1.49
 Stage: builder
 
+
 %files
     . /osmgraphing
 
 %post
+
+    rm -rf /osmgraphing/externals/multi-ch-constructor/build
     apt update
-    apt install -y libcgal-dev libeigen3-dev
+    apt install -y libcgal-dev libeigen3-dev \
+                   cmake libglpk-dev libboost-serialization-dev libboost-program-options-dev \
+                   libboost-filesystem-dev libboost-iostreams-dev libboost-graph-dev
     cd /osmgraphing
     GRAPH_DIM=3 cargo build --release --features='gpl'
+    ls -al
+    /osmgraphing/target/release/multi-ch-constructor build -d 2
+    /osmgraphing/target/release/multi-ch-constructor build -d 3
 
 
 Bootstrap: library
@@ -26,7 +34,9 @@ Stage: runtime
 
 %post
     apt update
-    apt install -y libcgal-dev libeigen3-dev
+    apt install -y libcgal-dev libeigen3-dev libglpk-dev \
+                   libboost-filesystem-dev
 
 %runscript
-    /osmgraphing/target/release/osmgraphing $@
+    cd /osmgraphing
+    ./target/release/$@
