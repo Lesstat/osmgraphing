@@ -22,7 +22,7 @@ fn run(args: CmdlineArgs) -> err::Feedback {
     info!("EXECUTE multi-ch-constructor");
 
     let mchc_cfg = Config::try_from_yaml(&args.cfg)?;
-    multi_ch_constructor::build(&mchc_cfg)?;
+    // multi_ch_constructor::build(&mchc_cfg)?;
     multi_ch_constructor::construct_ch_graph(&mchc_cfg)?;
 
     Ok(())

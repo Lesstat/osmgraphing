@@ -24,8 +24,9 @@ pub fn build(mchc_cfg: &configs::Config) -> err::Feedback {
     let cmd_arg = &format!("COST_ACCURACY={}", mchc_cfg.cost_accuracy);
     cmd_args.push(cmd_arg);
 
+    let repo_dir = fs::canonicalize(&REPO_DIR)?;
     let is_successful = std::process::Command::new("cmake")
-        .current_dir(fs::canonicalize(&REPO_DIR)?)
+        .current_dir(&repo_dir)
         .args(&cmd_args)
         .status()?
         .success();
@@ -35,7 +36,7 @@ pub fn build(mchc_cfg: &configs::Config) -> err::Feedback {
 
     let cmd_args = &["--build", "build"];
     let is_successful = std::process::Command::new("cmake")
-        .current_dir(fs::canonicalize(&REPO_DIR)?)
+        .current_dir(repo_dir)
         .args(cmd_args)
         .status()?
         .success();
@@ -68,11 +69,17 @@ pub fn construct_ch_graph(mchc_cfg: &configs::Config) -> err::Feedback {
         "--write",
         &format!("{}", mchc_cfg.ch_fmi_graph.to_string_lossy()),
     ];
-    let is_successful =
-        std::process::Command::new(Path::new(&REPO_DIR).join("build").join("multi-ch"))
-            .args(cmd_args)
-            .status()?
-            .success();
+    let exec_path = Path::new(&REPO_DIR)
+        .join("build")
+        .join(format!("multi-ch{}", mchc_cfg.dim));
+
+    if !exec_path.exists() {
+        build(mchc_cfg)?;
+    }
+    let is_successful = std::process::Command::new(exec_path)
+        .args(cmd_args)
+        .status()?
+        .success();
     if !is_successful {
         return Err(err::Msg::from(format!(
             "{}{}{}{}{}",

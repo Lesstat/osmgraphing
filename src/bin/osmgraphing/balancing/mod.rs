@@ -194,7 +194,7 @@ mod simulation_pipeline {
 
         mchc_cfg.cost_accuracy = defaults::accuracy::F64_ABS;
 
-        multi_ch_constructor::build(&mchc_cfg)?;
+        // multi_ch_constructor::build(&mchc_cfg)?;
         multi_ch_constructor::construct_ch_graph(&mchc_cfg)
     }
 
