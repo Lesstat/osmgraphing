@@ -353,3 +353,4 @@ $RECYCLE.BIN/
 
 # Any map of saarland
 /resources/saarland_[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/graph*
+*.sif

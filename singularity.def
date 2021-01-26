@@ -1,0 +1,32 @@
+Bootstrap: docker
+From: rust:1.49
+Stage: builder
+
+%files
+    . /osmgraphing
+
+%post
+    apt update
+    apt install -y libcgal-dev libeigen3-dev
+    cd /osmgraphing
+    GRAPH_DIM=3 cargo build --release --features='gpl'
+
+
+Bootstrap: library
+From: debian:10
+Stage: runtime
+
+%files from builder
+       /osmgraphing
+
+%labels
+    Author Florian Barth
+    Email barth@fmi.uni-stuttgart.de
+    Version v1.1.1
+
+%post
+    apt update
+    apt install -y libcgal-dev libeigen3-dev
+
+%runscript
+    /osmgraphing/target/release/osmgraphing $@
