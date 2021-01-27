@@ -1,5 +1,6 @@
 mod configs;
 pub use configs::Config;
+use log::info;
 
 pub(crate) mod defaults;
 
@@ -74,6 +75,10 @@ pub fn construct_ch_graph(mchc_cfg: &configs::Config) -> err::Feedback {
         .join(format!("multi-ch{}", mchc_cfg.dim));
 
     if !exec_path.exists() {
+        info!(
+            "multi-ch is not yet compiled for dimension {}. building",
+            mchc_cfg.dim
+        );
         build(mchc_cfg)?;
     }
     let is_successful = std::process::Command::new(exec_path)
