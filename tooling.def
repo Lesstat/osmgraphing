@@ -1,0 +1,70 @@
+Bootstrap: library
+From: debian:10
+
+
+%environment
+    export CARGO_TARGET_DIR=./target
+
+%files
+    . /osmgraphing/
+
+
+%post
+    export RUSTUP_HOME=/usr/local/rustup
+    export CARGO_HOME=/usr/local/cargo
+    export PATH=/usr/local/cargo/bin:$PATH
+    export RUST_VERSION=1.49.0
+
+
+    apt update
+    # rust deps
+    apt install -y wget
+
+    dpkgArch="$(dpkg --print-architecture)"
+    case "${dpkgArch##*-}" in
+        amd64) rustArch='x86_64-unknown-linux-gnu'; rustupSha256='ed7773edaf1d289656bdec2aacad12413b38ad0193fff54b2231f5140a4b07c5' ;;
+        armhf) rustArch='armv7-unknown-linux-gnueabihf'; rustupSha256='7a7b9d246ad63358705d8d4a7d5c2ef1adfec24525d1d5c44a7739e1b867e84d' ;;
+        arm64) rustArch='aarch64-unknown-linux-gnu'; rustupSha256='f80a0a792b3ab905ab4919474daf4d3f60e574fc6987e69bfba2fd877241a8de' ;;
+        i386) rustArch='i686-unknown-linux-gnu'; rustupSha256='4473c18286aa1831683a772706d9a5c98b87a61cc014d38063e00a63a480afef' ;;
+        *) echo >&2 "unsupported architecture: ${dpkgArch}"; exit 1 ;;
+    esac
+    url="https://static.rust-lang.org/rustup/archive/1.23.1/${rustArch}/rustup-init"
+    wget "$url"
+    echo "${rustupSha256} *rustup-init" | sha256sum -c - || echo "checksum failed"; exit 1
+    chmod +x rustup-init
+    ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host ${rustArch}
+    rm rustup-init
+    chmod -R a+w $RUSTUP_HOME $CARGO_HOME
+
+    # osmgraphing and multi-ch-constructor deps
+    apt install -y cmake libcgal-dev libeigen3-dev libglpk-dev \
+                   libboost-filesystem-dev libboost-iostreams-dev libboost-graph-dev \
+                   libboost-serialization-dev libboost-program-options-dev
+
+    cd /osmgraphing
+    cargo fetch
+    chmod -R +r /usr/local/cargo/registry # make sure downloaded dependencies can be read at runtime
+    cd /
+    rm -rf osmgraphing
+
+
+%help
+    This image contains the build tools (cargo, cmake, ..) and the dependencies
+    to build and run the osmgraphing tool (https://github.com/lesstat/osmgraphing).
+    Therefore, this image has to be rebuilt whenever dependencies change.
+
+    It can be used to directly invoke the binaries of the osmgraphing project
+    like this:
+
+    ./tooling.sif osmgraphing -c config.yaml --writing-graph
+    ./tooling.sif multi-ch-constructor run  -c config.yaml
+
+    It has to be started inside the osmgraphing directory and will rebuild the
+    project on the fly if necessary. Please be aware that the compiled binaries
+    will be put in the `target` and `externals/multi-ch-constructor/build`
+    directory respectively. The binaries might not be compatible with the host
+    system and pre compiled binaries from the host might need to be removed
+    before using this image.
+
+%runscript
+    cargo run --frozen --release --features='gpl' --bin $@
