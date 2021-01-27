@@ -4,6 +4,9 @@ From: debian:10
 
 %environment
     export CARGO_TARGET_DIR=./target
+    export RUSTUP_HOME=/usr/local/rustup
+    export CARGO_HOME=/usr/local/cargo
+    export PATH=/usr/local/cargo/bin:$PATH
 
 %files
     . /osmgraphing/
@@ -30,16 +33,17 @@ From: debian:10
     esac
     url="https://static.rust-lang.org/rustup/archive/1.23.1/${rustArch}/rustup-init"
     wget "$url"
-    echo "${rustupSha256} *rustup-init" | sha256sum -c - || echo "checksum failed"; exit 1
+    echo "${rustupSha256} *rustup-init" | sha256sum -c - ||  exit 1
     chmod +x rustup-init
     ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host ${rustArch}
     rm rustup-init
     chmod -R a+w $RUSTUP_HOME $CARGO_HOME
 
     # osmgraphing and multi-ch-constructor deps
-    apt install -y cmake libcgal-dev libeigen3-dev libglpk-dev \
-                   libboost-filesystem-dev libboost-iostreams-dev libboost-graph-dev \
-                   libboost-serialization-dev libboost-program-options-dev
+    apt install -y build-essential cmake libcgal-dev libeigen3-dev libglpk-dev \
+                   libboost-filesystem-dev libboost-iostreams-dev \
+                   libboost-graph-dev  libboost-serialization-dev \
+                   libboost-program-options-dev
 
     cd /osmgraphing
     cargo fetch
